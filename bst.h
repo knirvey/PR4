@@ -247,7 +247,8 @@ protected:
     virtual void nodeSwap( Node<Key,Value>* n1, Node<Key,Value>* n2) ;
 
     // Add helper functions here
-
+		void clearHelper(Node<Key, Value>*);
+		std::pair<bool, int> isBalancedHelper(Node<Key, Value>* node) const;
 
 protected:
     Node<Key, Value>* root_;
@@ -267,6 +268,7 @@ template<class Key, class Value>
 BinarySearchTree<Key, Value>::iterator::iterator(Node<Key,Value> *ptr)
 {
     // TODO
+		current_ = ptr;
 }
 
 /**
@@ -276,7 +278,7 @@ template<class Key, class Value>
 BinarySearchTree<Key, Value>::iterator::iterator() 
 {
     // TODO
-
+		current_ = NULL;
 }
 
 /**
@@ -309,6 +311,7 @@ BinarySearchTree<Key, Value>::iterator::operator==(
     const BinarySearchTree<Key, Value>::iterator& rhs) const
 {
     // TODO
+		return current_ == rhs.current_;
 }
 
 /**
@@ -321,7 +324,7 @@ BinarySearchTree<Key, Value>::iterator::operator!=(
     const BinarySearchTree<Key, Value>::iterator& rhs) const
 {
     // TODO
-
+		return current_ != rhs.current_;
 }
 
 
@@ -333,7 +336,33 @@ typename BinarySearchTree<Key, Value>::iterator&
 BinarySearchTree<Key, Value>::iterator::operator++()
 {
     // TODO
+		if(current_==NULL){
+			return *this;
+		}
 
+		if(current_ ->getRight()!= NULL){
+			current_ = current_->getRight();
+
+			while(current_->getLeft()!=NULL){
+				current_ = current_->getLeft();
+			}
+		}
+		else{
+			Node<Key, Value>* parent = current_->getParent();
+
+			if(parent == NULL){
+				current_ = NULL;
+			}else{
+
+				while(parent!=NULL && current_ == parent->getRight()){
+					current_ = parent;
+					parent = parent->getParent();
+				}
+
+				current_ = parent;
+			}
+		}
+		return *this;
 }
 
 
@@ -356,13 +385,14 @@ template<class Key, class Value>
 BinarySearchTree<Key, Value>::BinarySearchTree() 
 {
     // TODO
+		root_ = NULL;
 }
 
 template<typename Key, typename Value>
 BinarySearchTree<Key, Value>::~BinarySearchTree()
 {
     // TODO
-
+	clear();
 }
 
 /**
@@ -445,6 +475,45 @@ template<class Key, class Value>
 void BinarySearchTree<Key, Value>::insert(const std::pair<const Key, Value> &keyValuePair)
 {
     // TODO
+		
+		if(root_==NULL){
+			root_ = new Node<Key, Value>(keyValuePair.first, keyValuePair.second, NULL);
+			return;
+		}
+
+		Node<Key, Value>* curr = root_;
+		Node<Key, Value>* parent = NULL;
+
+		while(curr!= NULL){
+			parent=curr;
+
+
+			if(keyValuePair.first == curr->getKey()){
+
+				curr->setValue(keyValuePair.second);
+
+				return;
+			}else if(keyValuePair.first < curr->getKey()){
+
+				curr = curr->getLeft();
+
+			}else{
+
+				curr = curr->getRight();
+			}
+		}
+
+		Node<Key, Value>* newNode=new Node<Key, Value>(keyValuePair.first, keyValuePair.second, parent);
+
+		if(keyValuePair.first < parent->getKey()){
+			
+			parent->setLeft(newNode);
+
+		}else{
+			
+			parent->setRight(newNode);
+
+		}
 }
 
 
@@ -457,6 +526,47 @@ template<typename Key, typename Value>
 void BinarySearchTree<Key, Value>::remove(const Key& key)
 {
     // TODO
+		Node<Key, Value>* removeNode = internalFind(key);
+
+	if(removeNode==NULL){
+		return;
+	}
+
+	if(removeNode->getLeft() !=NULL && removeNode->getRight() !=NULL){
+
+		Node<Key, Value>* pred = predecessor(removeNode);
+		nodeSwap(removeNode, pred);
+
+	}
+
+	Node<Key, Value>* child;
+	if(removeNode->getLeft() != NULL){
+
+		child = removeNode->getLeft();
+
+	}else{
+
+		child = removeNode->getRight();
+	}
+
+	Node<Key, Value>* parent = removeNode->getParent();
+
+	if(child != NULL){
+		child->setParent(parent);
+	}
+
+	if(child == NULL){
+		root_ = child;
+	}else if(removeNode == parent->getLeft()){
+
+		parent->setLeft(child);
+
+	}else{
+		
+		parent->setRight(child);
+	}
+
+	delete removeNode;
 }
 
 
@@ -466,6 +576,27 @@ Node<Key, Value>*
 BinarySearchTree<Key, Value>::predecessor(Node<Key, Value>* current)
 {
     // TODO
+	if(current==NULL){
+		return NULL;
+	}
+
+	if(current->getLeft()!=NULL){
+		Node<Key, Value>* pred = current->getLeft();
+
+		while(pred->getRight()!=NULL){
+			pred = pred->getRight();
+		}
+
+		return pred;
+	}
+
+	Node<Key, Value>* parent = current->getParent();
+	while(parent!=NULL && current == parent->getLeft()){
+		current = parent;
+		parent = parent->getParent();
+	}
+
+	return parent;
 }
 
 
@@ -477,8 +608,24 @@ template<typename Key, typename Value>
 void BinarySearchTree<Key, Value>::clear()
 {
     // TODO
-}
+		clearHelper(root_);
+		root_ = NULL;
 
+
+}
+template<typename Key, typename Value>
+void BinarySearchTree<Key, Value>::clearHelper(Node<Key, Value>* node)
+{
+	if(node==NULL){
+		return;
+	}
+
+	clearHelper(node->getLeft());
+	clearHelper(node->getRight());
+
+	delete node;
+
+}
 
 /**
 * A helper function to find the smallest node in the tree.
@@ -488,6 +635,19 @@ Node<Key, Value>*
 BinarySearchTree<Key, Value>::getSmallestNode() const
 {
     // TODO
+		if(root_ == NULL){
+			return NULL;
+		}
+
+		Node<Key, Value>* curr=root_;
+
+		while(curr->getLeft()!=NULL){
+
+			curr = curr->getLeft();
+
+		}
+
+		return curr;
 }
 
 /**
@@ -499,6 +659,27 @@ template<typename Key, typename Value>
 Node<Key, Value>* BinarySearchTree<Key, Value>::internalFind(const Key& key) const
 {
     // TODO
+	
+	Node<Key, Value>* curr=root_;
+
+	while(curr!=NULL){
+
+		if(key == curr->getKey()){ 
+
+			return curr;
+
+		}else if(key < curr->getKey()){
+
+			curr = curr->getLeft();
+
+		}else{
+
+			curr = curr->getRight();
+
+		}
+	}
+
+	return NULL;
 }
 
 /**
@@ -508,6 +689,32 @@ template<typename Key, typename Value>
 bool BinarySearchTree<Key, Value>::isBalanced() const
 {
     // TODO
+		return isBalancedHelper(root_).first;
+}
+
+template<typename Key, typename Value>
+std::pair<bool, int>BinarySearchTree<Key, Value>:: isBalancedHelper(Node<Key, Value>* node) const
+{
+	if (node==NULL){
+		return std::make_pair(true, -1);
+	}
+
+	std::pair<bool, int> leftResult = isBalancedHelper(node->getLeft());
+	std::pair<bool, int> rightResult = isBalancedHelper(node->getRight());
+
+	if(!leftResult.first){
+		return std::make_pair(false,0);
+	}
+	if(!rightResult.first){
+		return std::make_pair(false,0);
+	}
+
+	int leftHeight = leftResult.second;
+	int rightHeight = rightResult.second;
+
+	bool isBalanced = (leftHeight - rightHeight >= -1) && (leftHeight - rightHeight <= 1);
+
+	return std::make_pair(isBalanced, 1+ std::max(leftHeight, rightHeight));
 }
 
 
