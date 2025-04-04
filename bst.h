@@ -350,9 +350,6 @@ BinarySearchTree<Key, Value>::iterator::operator++()
 		else{
 			Node<Key, Value>* parent = current_->getParent();
 
-			if(parent == NULL){
-				current_ = NULL;
-			}else{
 
 				while(parent!=NULL && current_ == parent->getRight()){
 					current_ = parent;
@@ -360,7 +357,7 @@ BinarySearchTree<Key, Value>::iterator::operator++()
 				}
 
 				current_ = parent;
-			}
+			
 		}
 		return *this;
 }
@@ -536,27 +533,21 @@ void BinarySearchTree<Key, Value>::remove(const Key& key)
 
 		Node<Key, Value>* pred = predecessor(removeNode);
 		nodeSwap(removeNode, pred);
+		removeNode = pred;
 
-	}
-
-	Node<Key, Value>* child;
-	if(removeNode->getLeft() != NULL){
-
-		child = removeNode->getLeft();
-
-	}else{
-
-		child = removeNode->getRight();
 	}
 
 	Node<Key, Value>* parent = removeNode->getParent();
-
-	if(child != NULL){
-		child->setParent(parent);
+	Node<Key, Value>* child;
+	if(removeNode->getLeft()!=NULL){
+		child = removeNode->getLeft();
+	}else{
+		child = removeNode->getRight();
 	}
 
-	if(child == NULL){
+	if(parent == NULL){
 		root_ = child;
+
 	}else if(removeNode == parent->getLeft()){
 
 		parent->setLeft(child);
@@ -564,6 +555,9 @@ void BinarySearchTree<Key, Value>::remove(const Key& key)
 	}else{
 		
 		parent->setRight(child);
+	}
+	if(child != NULL){
+		child->setParent(parent);
 	}
 
 	delete removeNode;
