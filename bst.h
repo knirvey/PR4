@@ -249,6 +249,7 @@ protected:
     // Add helper functions here
 		void clearHelper(Node<Key, Value>*);
 		std::pair<bool, int> isBalancedHelper(Node<Key, Value>* node) const;
+		
 
 protected:
     Node<Key, Value>* root_;
@@ -533,7 +534,7 @@ void BinarySearchTree<Key, Value>::remove(const Key& key)
 
 		Node<Key, Value>* pred = predecessor(removeNode);
 		nodeSwap(removeNode, pred);
-		removeNode = pred;
+		
 
 	}
 

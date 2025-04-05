@@ -158,7 +158,6 @@ void AVLTree<Key, Value>::insert (const std::pair<const Key, Value> &new_item)
 BinarySearchTree<Key, Value>::insert(new_item);
 AVLNode<Key, Value>* node = static_cast<AVLNode<Key, Value>*>(this->internalFind(new_item.first));
 
-
 AVLNode<Key, Value>* parent = node->getParent();
 while(parent!=nullptr){
 
